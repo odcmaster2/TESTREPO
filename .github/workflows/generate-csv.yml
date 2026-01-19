@@ -1,0 +1,28 @@
+name: Generate and Publish CSV Daily
+
+on:
+  schedule:
+    # Τρέχει κάθε μέρα στις 08:00 UTC (11:00 Ελλάδα)
+    - cron: '40 16 * * *'
+  # Επίσης τρέχει χειροκίνητα
+  workflow_dispatch:
+
+jobs:
+  generate-csv:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Generate CSV
+      run: |
+        # Εδώ βάζεις το script που δημιουργεί το CSV
+        # Παράδειγμα με Python:
+        python generate_csv.py
+        
+    - name: Upload CSV as Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: generated-csv
+        path: data.csv  # ή όποιο όνομα έχει το CSV σου
