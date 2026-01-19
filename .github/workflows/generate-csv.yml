@@ -1,73 +1,28 @@
-name: Generate and Publish CSV at 18:40
-
+name: Simple CSV Generator
 on:
   schedule:
-    # Τρέχει κάθε μέρα στις 16:40 UTC = 18:40 Ελλάδα
-    - cron: '49 16 * * *'
-    
-  workflow_dispatch:  # Για χειροκίνητη εκτέλεση
+    - cron: '40 16 * * *'
+  workflow_dispatch:
 
 jobs:
-  generate-csv:
+  build:
     runs-on: ubuntu-latest
-    
     permissions:
-      contents: write  # Απαραίτητο για v4
+      contents: write
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4  # Ενημερωμένο και αυτό
+      - uses: actions/checkout@v4
       
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pandas
-        
-    - name: Generate CSV with Greek data
-      run: |
-        cat > generate_csv.py << 'EOF'
-import pandas as pd
-import datetime
-
-# Δημιουργία Ελληνικών δεδομένων
-data = {
-    'Ημερομηνία': [datetime.datetime.now().strftime('%d/%m/%Y %H:%M')],
-    'Εταιρεία': ['Ελληνική Εταιρεία ΑΕ'],
-    'Πελάτης': ['Γεώργιος Παπαδόπουλος'],
-    'Πόλη': ['Αθήνα'],
-    'Ποσό': [1250.75],
-    'Νόμισμα': ['EUR'],
-    'Κατάσταση': ['Ολοκληρωμένη']
-}
-
-df = pd.DataFrame(data)
-# UTF-8 με BOM για σωστά ελληνικά στο Excel
-df.to_csv('data.csv', index=False, encoding='utf-8-sig')
-print("✅ CSV δημιουργήθηκε επιτυχώς!")
-print(f"⏰ Ώρα δημιουργίας: {datetime.datetime.now()}")
-EOF
-        
-        python generate_csv.py
-        
-    - name: Upload CSV as Artifact
-      uses: actions/upload-artifact@v4  # ΑΥΤΟ ΕΙΝΑΙ Η ΔΙΟΡΘΩΣΗ!
-      with:
-        name: daily-csv-report
-        path: data.csv
-        
-    - name: Display file info
-      run: |
-        echo "📊 Πληροφορίες αρχείου:"
-        ls -la data.csv
-        echo "--- Πρώτες 5 γραμμές ---"
-        head -5 data.csv
-        
-    - name: Verify execution time (Optional)
-      run: |
-        echo "🕒 UTC Time: $(date -u '+%H:%M')"
-        echo "🇬🇷 Greece Time: $(TZ='Europe/Athens' date '+%H:%M')"
+      - name: Create CSV file
+        run: |
+          echo "Date,Company,Amount" > data.csv
+          echo "$(date '+%Y-%m-%d'),Company A,1000" >> data.csv
+          echo "$(date '+%Y-%m-%d'),Company B,2000" >> data.csv
+          echo "File created at $(date)"
+          cat data.csv
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: csv-data
+          path: data.csv
