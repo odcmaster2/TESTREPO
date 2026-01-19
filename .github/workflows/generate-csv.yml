@@ -3,7 +3,7 @@ name: Generate and Publish CSV at 18:40
 on:
   schedule:
     # Τρέχει κάθε μέρα στις 16:40 UTC = 18:40 Ελλάδα
-    - cron: '48 16 * * *'
+    - cron: '49 16 * * *'
     
   workflow_dispatch:  # Για χειροκίνητη εκτέλεση
 
