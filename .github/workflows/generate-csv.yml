@@ -1,7 +1,7 @@
-name: Simple CSV Generator
+name: Generate CSV and Save to Repository
 on:
   schedule:
-    - cron: '40 16 * * *'
+    - cron: '40 16 * * *'  # 18:40 Ελλάδα
   workflow_dispatch:
 
 jobs:
@@ -11,17 +11,47 @@ jobs:
       contents: write
     
     steps:
+      # 1. Checkout με write permissions
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Create CSV file
+      # 2. Σβήνει το παλιό data.csv (αν υπάρχει)
+      - name: Delete old CSV if exists
+        run: |
+          if [ -f "data.csv" ]; then
+            echo "🗑️ Διαγραφή παλιού data.csv"
+            rm data.csv
+          fi
+      
+      # 3. Δημιουργεί το νέο CSV
+      - name: Create new CSV file
         run: |
           echo "Date,Company,Amount" > data.csv
           echo "$(date '+%Y-%m-%d'),Company A,1000" >> data.csv
           echo "$(date '+%Y-%m-%d'),Company B,2000" >> data.csv
-          echo "File created at $(date)"
+          echo "📁 CSV δημιουργήθηκε: $(date)"
           cat data.csv
       
-      - name: Upload artifact
+      # 4. Commit και push το CSV στο repository
+      - name: Save CSV to repository
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+          
+          git add data.csv
+          
+          # Έλεγχος αν υπάρχουν αλλαγές
+          if git status --porcelain | grep -q 'data.csv'; then
+            git commit -m "📊 Update CSV data $(date '+%Y-%m-%d %H:%M')"
+            git push
+            echo "✅ CSV αποθηκεύτηκε στο repository"
+          else
+            echo "⚠️ Δεν υπάρχουν αλλαγές για commit"
+          fi
+      
+      # 5. (Προαιρετικά) Ανέβασμα ως artifact για Power Automate
+      - name: Upload artifact for Power Automate
         uses: actions/upload-artifact@v4
         with:
           name: csv-data
